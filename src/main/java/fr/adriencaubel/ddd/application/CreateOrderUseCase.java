@@ -1,10 +1,8 @@
 package fr.adriencaubel.ddd.application;
 
-import fr.adriencaubel.ddd.domain.Mouvement;
-import fr.adriencaubel.ddd.domain.MouvementType;
-import fr.adriencaubel.ddd.domain.Stock;
-import fr.adriencaubel.ddd.domain.repository.MouvementRepository;
-import fr.adriencaubel.ddd.domain.repository.StockRepository;
+import fr.adriencaubel.ddd.domain.*;
+import fr.adriencaubel.ddd.domain.repository.*;
+import fr.adriencaubel.ddd.domain.service.OrderDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,20 +15,37 @@ public class CreateOrderUseCase {
 
     private final MouvementRepository mouvementRepository;
 
+    private final OrderDomainService orderDomainService;
+
+    private final ArticleRepository articleRepository;
+
+    private final ClientRepository clientRepository;
+
+    private final OrderRepository orderRepository;
+
+    private final ProviderRepository providerRepository;
+
+
+    /**
+     * Contient uniquement l'orchestration :
+     * - récupère en base de données les entités
+     * - persiste en base de données les entités + envoie de mail par exemple
+     */
     @Transactional
-    public void create(Long articleId, Long providerId, int quantity) {
+    public void create(Long articleId, Long providerId, Long clientId, int quantity) {
         Stock stock = stockRepository
                 .findByArticleIdAndProviderId(articleId, providerId)
                 .orElseThrow();
 
-        stock.reserve(quantity);
+        Provider provider = providerRepository.findById(providerId).orElseThrow();
 
-        // Création d'une commande à base de donnée
-        System.out.println("Création d'une commande à base de donnée");
+        Article article = articleRepository.findById(articleId).orElseThrow();
 
-        stockRepository.save(stock); // Si accès concurrent alors optimistic locking exception
+        Client client = clientRepository.findById(clientId).orElseThrow();
 
-        Mouvement mouvement = new Mouvement(articleId, MouvementType.OUTPUT, quantity);
-        mouvementRepository.save(mouvement);
+        OrderResult orderResult = orderDomainService.createOrder(client, article, quantity, stock, provider);
+
+        mouvementRepository.save(orderResult.mouvement);
+        orderRepository.save(orderResult.order);
     }
 }

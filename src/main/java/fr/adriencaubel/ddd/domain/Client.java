@@ -18,4 +18,8 @@ public class Client {
     private int numberOfOrders;
 
     public Client() {}
+
+    public void incrementNumberOfOrders() {
+        numberOfOrders++;
+    }
 }

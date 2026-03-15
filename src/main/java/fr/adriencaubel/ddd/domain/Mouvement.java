@@ -31,9 +31,11 @@ public class Mouvement {
 
     public Mouvement() {}
 
-    public Mouvement(Long articleId, MouvementType type, Integer quantity) {
+    public Mouvement(Long articleId, Provider provider, MouvementType type, Integer quantity) {
         this.articleId = articleId;
+        this.provider = provider;
         this.type = type;
         this.quantity = quantity;
+        this.date = LocalDateTime.now();
     }
 }

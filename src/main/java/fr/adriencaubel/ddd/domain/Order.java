@@ -25,8 +25,22 @@ public class Order {
      * Order est la racine de l'agregat donc on référence la ligne via sa référence
      */
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", nullable = false)
     public List<OrderLine> orderLines = new ArrayList<>();
 
     public Order() {}
+
+    public Order(Long clientId) {
+        this.clientId = clientId;
+    }
+
+    public void addOrderLine(Long articleId, int quantity) {
+        if(quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        OrderLine orderLine = new OrderLine();
+        orderLine.setArticleId(articleId);
+        orderLine.setQuantity(quantity);
+        orderLines.add(orderLine);
+    }
 }
